@@ -1,144 +1,127 @@
-import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import api from "../services/api";
 
 export default function Register() {
   const { register, handleSubmit, watch } = useForm();
+  const navigate = useNavigate();
 
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   const registerUser = async (data) => {
     setLoading(true);
-    setError(null);
+    setError("");
 
     try {
-      await api.post("/auth/register", data);
-      setSuccess(true);
+      await api.post("/auth/register", {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        password_confirmation: data.password_confirmation,
+      });
+
+      navigate("/login");
     } catch (err) {
-      const messages = err.response?.data?.errors;
-      if (messages) {
-        const firstError = Object.values(messages)[0]?.[0];
-        setError(firstError || "Registrasi gagal");
-      } else {
-        setError(err.response?.data?.message || "Registrasi gagal");
-      }
+      setError(err.response?.data?.message || "Registrasi gagal");
+    } finally {
       setLoading(false);
     }
   };
 
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <div className="bg-white w-[480px] p-10 rounded-3xl shadow-2xl text-center">
-          <div className="text-6xl mb-4">📧</div>
-          <h2 className="text-3xl font-bold text-slate-800 mb-4">
-            Cek Email Kamu!
-          </h2>
-          <p className="text-slate-500 mb-6">
-            Kami sudah mengirim link verifikasi ke email{" "}
-            <strong>{watch("email")}</strong>.
-            <br />
-            Silakan klik link tersebut untuk mengaktifkan akun.
-          </p>
-          <Link
-            to="/login"
-            className="inline-block py-3 px-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:scale-105 transition"
-          >
-            Ke Halaman Login
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex">
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white items-center justify-center">
-        <div className="max-w-md px-10">
-          <h1 className="text-5xl font-bold mb-6">
-            🎓 Sistem Akademik
-          </h1>
-          <p className="text-xl opacity-90">
-            Daftar akun baru untuk mengelola data mahasiswa, dosen, jurusan, dan akademik by Azam Mahfud.
-          </p>
-        </div>
-      </div>
+    <div
+      className="relative min-h-screen bg-cover bg-center flex items-center justify-start px-20"
+      style={{
+        backgroundImage: "url('/images/auth-banner.jpg')",
+      }}
+    >
+      <div className="absolute inset-0 bg-blue-950/35"></div>
 
-      <div className="flex-1 flex items-center justify-center bg-slate-100">
-        <form
-          onSubmit={handleSubmit(registerUser)}
-          className="bg-white w-[420px] p-10 rounded-3xl shadow-2xl"
+      <div className="relative z-10 w-full max-w-sm">
+        <div
+          className="backdrop-blur-md border border-white/25 rounded-[30px] shadow-[0_8px_32px_rgba(255,255,255,0.08)] p-8"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+          }}
         >
-          <h2 className="text-4xl font-bold text-center text-slate-800 mb-2">
-            Daftar
-          </h2>
-          <p className="text-center text-slate-500 mb-8">
-            Buat akun baru
-          </p>
+          <div className="mb-6">
+            <h2 className="text-white text-lg">
+              Buat Akun di <b>AKADEMIK.</b>
+            </h2>
+            <p className="text-white/70 text-sm">
+              Portal Data Mahasiswa Anda.
+            </p>
+          </div>
+
+          <h1 className="text-white text-4xl font-bold mb-6">
+            REGISTER
+          </h1>
 
           {error && (
-            <div className="bg-red-100 text-red-600 p-3 rounded-xl mb-4">
+            <div className="mb-4 bg-red-500/20 border border-red-400 text-white rounded-xl p-3 text-sm">
               {error}
             </div>
           )}
 
-          <div className="mb-4">
-            <label className="block mb-2 text-slate-600">Nama</label>
+          <form onSubmit={handleSubmit(registerUser)}>
             <input
-              {...register("name")}
+              {...register("name", { required: true })}
+              type="text"
               placeholder="Nama Lengkap"
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full mb-3 px-5 py-3 bg-white/[0.04] border border-white/40 rounded-2xl text-white placeholder-white/60 outline-none focus:border-cyan-300 focus:bg-white/[0.06] transition"
             />
-          </div>
 
-          <div className="mb-4">
-            <label className="block mb-2 text-slate-600">Email</label>
             <input
-              {...register("email")}
-              placeholder="admin@email.com"
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {...register("email", { required: true })}
+              type="email"
+              placeholder="Email"
+              className="w-full mb-3 px-5 py-3 bg-white/[0.04] border border-white/40 rounded-2xl text-white placeholder-white/60 outline-none focus:border-cyan-300 focus:bg-white/[0.06] transition"
             />
-          </div>
 
-          <div className="mb-4">
-            <label className="block mb-2 text-slate-600">Password</label>
             <input
-              {...register("password")}
+              {...register("password", { required: true, minLength: 6 })}
               type="password"
-              placeholder="Minimal 6 karakter"
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Kata Sandi"
+              className="w-full mb-3 px-5 py-3 bg-white/[0.04] border border-white/40 rounded-2xl text-white placeholder-white/60 outline-none focus:border-cyan-300 focus:bg-white/[0.06] transition"
             />
-          </div>
 
-          <div className="mb-6">
-            <label className="block mb-2 text-slate-600">Konfirmasi Password</label>
             <input
-              {...register("password_confirmation")}
+              {...register("password_confirmation", {
+                required: true,
+                validate: (value) =>
+                  value === watch("password") || "Password tidak sama",
+              })}
               type="password"
-              placeholder="Ulangi password"
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Konfirmasi Kata Sandi"
+              className="w-full mb-6 px-5 py-3 bg-white/[0.04] border border-white/40 rounded-2xl text-white placeholder-white/60 outline-none focus:border-cyan-300 focus:bg-white/[0.06] transition"
             />
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:scale-105 transition"
-          >
-            {loading ? "Memproses..." : "Daftar"}
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-bold shadow-lg transition disabled:opacity-60"
+            >
+              {loading ? "Memproses..." : "Daftar"}
+            </button>
+          </form>
 
-          <p className="text-center text-slate-500 mt-6">
-            Sudah punya akun?{" "}
-            <Link to="/login" className="text-blue-600 font-semibold hover:underline">
-              Login
+          <div className="text-center mt-5">
+            <Link
+              to="/login"
+              className="text-white/80 hover:text-white text-sm"
+            >
+              Sudah punya akun? Login
             </Link>
-          </p>
-        </form>
+          </div>
+        </div>
       </div>
+
+      <p className="absolute bottom-5 left-0 right-0 text-center text-white/60 text-sm">
+        © 2026 Universitas Indonesia Jaya. All rights reserved.
+      </p>
     </div>
   );
 }
